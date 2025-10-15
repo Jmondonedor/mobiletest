@@ -18,25 +18,26 @@ class NewsRepositoryImpl @Inject constructor(
         withContext(Dispatchers.IO) {
             try {
                 val response = service.searchNews(query)
-                if (response.isSuccessful) {
-                    response.body()?.let { responseDto ->
-                        return@withContext responseDto.articles.map { dto ->
-                            News(
-                                id = dto.url,
-                                author = dto.author,
-                                title = dto.title,
-                                description = dto.description,
-                                url = dto.url,
-                                urlToImage = dto.urlToImage,
-                                publishedAt = dto.publishedAt,
-                                content = dto.content,
-                                sourceName = dto.source.name,
-                                isFavorite = dao.fetchByUrl(dto.url).isNotEmpty()
-                            )
-                        }
+                if (response.isSuccessful && response.body() != null) {
+                    // Ahora response.body() es List<NewsDto> directamente
+                    val articles = response.body()!!
+                    return@withContext articles.map { dto ->
+                        News(
+                            id = dto.url,
+                            author = dto.author,
+                            title = dto.title,
+                            description = dto.description,
+                            url = dto.url,
+                            urlToImage = dto.urlToImage,
+                            publishedAt = dto.publishedAt,
+                            content = dto.content,
+                            sourceName = dto.source.name,
+                            isFavorite = dao.fetchByUrl(dto.url).isNotEmpty()
+                        )
                     }
                 }
             } catch (e: Exception) {
+                e.printStackTrace() // Para debugging
                 return@withContext emptyList()
             }
             return@withContext emptyList()
