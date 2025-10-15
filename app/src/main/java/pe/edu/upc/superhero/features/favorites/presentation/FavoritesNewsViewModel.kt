@@ -5,45 +5,33 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import pe.edu.upc.superhero.features.news.domain.News
 import pe.edu.upc.superhero.features.news.domain.NewsRepository
 import javax.inject.Inject
 
 @HiltViewModel
-class SearchNewsViewModel @Inject constructor(
+class FavoritesNewsViewModel @Inject constructor(
     private val repository: NewsRepository
 ) : ViewModel() {
-
-    private val _query = MutableStateFlow("")
-    val query: StateFlow<String> = _query
 
     private val _news = MutableStateFlow<List<News>>(emptyList())
     val news: StateFlow<List<News>> = _news
 
-    fun onQueryChange(value: String) {
-        _query.value = value
-    }
-
-    fun searchNews() {
+    private fun getAllFavorites() {
         viewModelScope.launch {
-            _news.value = repository.searchNews(_query.value)
+            _news.value = repository.getAllFavorites()
         }
     }
 
-    fun toggleFavorite(news: News) {
+    fun removeFavorite(news: News) {
         viewModelScope.launch {
-            if (news.isFavorite) {
-                repository.delete(news)
-            } else {
-                repository.insert(news)
-            }
-            _news.update { list ->
-                list.map { n ->
-                    if (n.id == news.id) n.copy(isFavorite = !n.isFavorite) else n
-                }
-            }
+            repository.delete(news)
+            _news.value = _news.value.filterNot { it.id == news.id }
         }
+    }
+
+    init {
+        getAllFavorites()
     }
 }

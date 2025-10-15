@@ -1,4 +1,4 @@
-package pe.edu.upc.superhero.features.favorites.presentation
+package pe.edu.upc.superhero.features.news.presentation
 
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -6,19 +6,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import pe.edu.upc.superhero.core.ui.components.FavoriteRow
+import pe.edu.upc.superhero.core.ui.components.FavoriteNewsRow
 
 @Composable
-fun FavoritesView(
+fun FavoritesNewsView(
     modifier: Modifier = Modifier,
-    viewModel: FavoritesViewModel = hiltViewModel()
+    viewModel: FavoritesNewsViewModel = hiltViewModel()
 ) {
-    val heroes = viewModel.heroes.collectAsState()
+    val newsList = viewModel.news.collectAsState()
 
     LazyColumn(modifier) {
-        items(heroes.value) { hero ->
-            FavoriteRow(hero) {
-                viewModel.removeFavorite(hero)
+        items(newsList.value) { news ->
+            FavoriteNewsRow(news) {
+                viewModel.removeFavorite(news)
             }
         }
     }

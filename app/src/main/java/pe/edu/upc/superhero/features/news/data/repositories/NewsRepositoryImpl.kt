@@ -1,7 +1,12 @@
 package pe.edu.upc.superhero.features.news.data.repositories
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import pe.edu.upc.superhero.features.news.data.local.dao.NewsDao
+import pe.edu.upc.superhero.features.news.data.local.models.NewsEntity
 import pe.edu.upc.superhero.features.news.data.remote.service.NewsService
+import pe.edu.upc.superhero.features.news.domain.News
+import pe.edu.upc.superhero.features.news.domain.NewsRepository
 import javax.inject.Inject
 
 class NewsRepositoryImpl @Inject constructor(
@@ -52,5 +57,26 @@ class NewsRepositoryImpl @Inject constructor(
 }
 
 // Extension functions para mapear
-private fun News.toEntity() = NewsEntity(...)
-private fun NewsEntity.toDomain() = News(...)
+private fun News.toEntity() = NewsEntity(
+    url = url,
+    author = author,
+    title = title,
+    description = description,
+    urlToImage = urlToImage,
+    publishedAt = publishedAt,
+    content = content,
+    sourceName = sourceName
+)
+
+private fun NewsEntity.toDomain() = News(
+    id = url,
+    author = author,
+    title = title,
+    description = description,
+    url = url,
+    urlToImage = urlToImage,
+    publishedAt = publishedAt,
+    content = content,
+    sourceName = sourceName,
+    isFavorite = true
+)
