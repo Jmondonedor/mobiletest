@@ -3,17 +3,25 @@ package pe.edu.upc.superhero.features.news.presentation
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import pe.edu.upc.superhero.core.ui.components.NewsRow
 
@@ -25,6 +33,8 @@ fun SearchNewsView(
 ) {
     val query = viewModel.query.collectAsState()
     val newsList = viewModel.news.collectAsState()
+    val isLoading = viewModel.isLoading.collectAsState()
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     Column(
         modifier = modifier.fillMaxSize()
@@ -32,18 +42,41 @@ fun SearchNewsView(
         OutlinedTextField(
             value = query.value,
             onValueChange = viewModel::onQueryChange,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
             placeholder = {
                 Text("Search news...")
             },
             trailingIcon = {
                 IconButton(
-                    onClick = viewModel::searchNews
+                    onClick = {
+                        keyboardController?.hide()
+                        viewModel.searchNews()
+                    }
                 ) {
                     Icon(Icons.Default.Search, contentDescription = "Search")
                 }
-            }
+            },
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Search
+            ),
+            keyboardActions = KeyboardActions(
+                onSearch = {
+                    keyboardController?.hide()
+                    viewModel.searchNews()
+                }
+            ),
+            singleLine = true
         )
+
+        if (isLoading.value) {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(16.dp)
+            )
+        }
 
         LazyColumn {
             items(newsList.value) { news ->

@@ -20,21 +20,38 @@ class NewsDetailViewModel @Inject constructor(
 
     fun loadNews(newsUrl: String) {
         viewModelScope.launch {
-            // Buscar en favoritos primero
-            val favorites = repository.getAllFavorites()
-            _news.value = favorites.find { it.url == newsUrl }
+            // 1. Intentar obtener del caché primero
+            val cachedNews = SearchNewsViewModel.getNewsFromCache(newsUrl)
+
+            if (cachedNews != null) {
+                // Verificar si está en favoritos
+                val favorites = repository.getAllFavorites()
+                val isFavorite = favorites.any { it.url == newsUrl }
+                _news.value = cachedNews.copy(isFavorite = isFavorite)
+            } else {
+                // 2. Si no está en caché, buscar en favoritos
+                val favorites = repository.getAllFavorites()
+                _news.value = favorites.find { it.url == newsUrl }
+            }
         }
     }
 
     fun toggleFavorite() {
         viewModelScope.launch {
             _news.value?.let { currentNews ->
-                if (currentNews.isFavorite) {
-                    repository.delete(currentNews)
-                    _news.value = currentNews.copy(isFavorite = false)
-                } else {
-                    repository.insert(currentNews)
-                    _news.value = currentNews.copy(isFavorite = true)
+                try {
+                    if (currentNews.isFavorite) {
+                        repository.delete(currentNews)
+                        _news.value = currentNews.copy(isFavorite = false)
+                    } else {
+                        repository.insert(currentNews)
+                        _news.value = currentNews.copy(isFavorite = true)
+                    }
+
+                    // Actualizar caché
+                    _news.value?.let { SearchNewsViewModel.cacheNews(it) }
+                } catch (e: Exception) {
+                    // Manejar error si es necesario
                 }
             }
         }
